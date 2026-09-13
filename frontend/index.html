@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JLPT 背单词</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section id="screen-onboarding" class="screen">
+      <div class="hero">
+        <div class="hero-bg">日</div>
+        <div class="hero-label">从零开始，</div>
+        <div class="hero-title">多久能打下<br><em>N2 词汇基础</em>？</div>
+        <div class="hero-num">
+          <div class="hero-num-main">
+            <span>6500</span><span class="hero-num-unit">个高频词</span>
+          </div>
+          <div class="hero-num-src">来自 2010–2025 年 N2 真题</div>
+        </div>
+      </div>
+
+      <div class="main-card">
+        <div class="calc-section" id="calc-section">
+          <div class="calc-title">根据我的情况估算</div>
+
+          <div class="input-group">
+            <div class="input-label">每天时间</div>
+            <div class="btn-group">
+              <div class="opt-btn custom-time-btn" onclick="selectCustomTime(this, 7, 10)">30分<span class="sub">约10词</span></div>
+              <div class="opt-btn custom-time-btn" onclick="selectCustomTime(this, 11, 15)">45分<span class="sub">约15词</span></div>
+              <div class="opt-btn custom-time-btn" onclick="selectCustomTime(this, 16, 20)">60分<span class="sub">约20词</span></div>
+              <div class="opt-btn custom-time-btn" onclick="selectCustomTime(this, 19, 30)">90分<span class="sub">约30词</span></div>
+              <div class="opt-btn custom-time-btn" onclick="selectCustomTime(this, 22, 35)">120分<span class="sub">约35词</span></div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div class="input-label">
+              我的日语基础
+              <span class="tag">有基础可加速</span>
+            </div>
+            <div class="btn-group">
+              <div class="opt-btn base-btn" onclick="selectBase(this, 0, 1.0)">零基础<span class="sub">从头开始</span></div>
+              <div class="opt-btn base-btn" onclick="selectBase(this, 800, 1.1)">N5水平<span class="sub">约800词</span></div>
+              <div class="opt-btn base-btn" onclick="selectBase(this, 1500, 1.2)">N4水平<span class="sub">约1500词</span></div>
+              <div class="opt-btn base-btn" onclick="selectBase(this, 3000, 1.3)">N3水平<span class="sub">约3000词</span></div>
+              <div class="opt-btn base-btn" onclick="selectBase(this, 5000, 1.4)">N2水平<span class="sub">约5000词</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-area" id="result-area">
+          <div class="result-main" id="result-main">
+            <div class="result-top">
+              <div class="result-num" id="result-num">—</div>
+              <div class="result-right">
+                <div class="result-unit">个月</div>
+                <div class="result-qmark" onclick="toggleExplain()">?</div>
+              </div>
+            </div>
+            <div class="result-label">你的预估完成周期</div>
+
+            <div class="result-explain" id="result-explain">
+              <div class="explain-close" onclick="toggleExplain()">✕</div>
+              <div class="explain-row"><span class="explain-icon">📊</span><span>这个周期会结合你的当前基础、每天学习时间和词汇复习节奏综合估算，仅作为学习规划参考。</span></div>
+              <div class="explain-row"><span class="explain-icon">⚡</span><span>如果你已有 N4 或 N3 基础，系统会默认你对词形、读音和常见表达更熟悉，预计周期会相应缩短。</span></div>
+              <div class="explain-row"><span class="explain-icon">⚠️</span><span>实际完成时间受坚持频率、复习质量和听读反应速度影响，这里显示的是<strong>参考周期</strong>，不是固定承诺。</span></div>
+            </div>
+
+            <div class="result-hope" id="result-hope"></div>
+
+            <div class="result-breakdown">
+              <div class="breakdown-row">
+                <div class="breakdown-label">目标词量</div>
+                <div class="breakdown-val gold" id="bd-target">—</div>
+              </div>
+              <div class="breakdown-row">
+                <div class="breakdown-label">每天净增词汇</div>
+                <div class="breakdown-val gold" id="bd-daily">—</div>
+              </div>
+              <div class="breakdown-row">
+                <div class="breakdown-label">基础加成</div>
+                <div class="breakdown-val green" id="bd-base">—</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="generate-wrap">
+          <button class="generate-btn" onclick="planGenerate()">生成我的学习计划 →</button>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="screen-entry" class="screen">
+      <div class="vocab-entry-title">继续今天的学习</div>
+      <div class="vocab-entry-sub" id="vocab-entry-sub">按当前节奏，预计约 … 个月完成 N2 词汇基础</div>
+      <div class="vocab-entry-stats">
+        <div class="ves-item">
+          <div class="ves-num" id="vocab-entry-today-target">…</div>
+          <div class="ves-label">今日新词</div>
+        </div>
+        <div class="ves-item">
+          <div class="ves-num" id="vocab-entry-due">…</div>
+          <div class="ves-label">今日复习</div>
+        </div>
+        <div class="ves-item">
+          <div class="ves-num" id="vocab-entry-today">…</div>
+          <div class="ves-label">今日已学</div>
+        </div>
+        <button class="ves-item ves-clickable" id="ves-learned-btn">
+          <div class="ves-num" id="vocab-entry-learned">…</div>
+          <div class="ves-label">已掌握</div>
+        </button>
+      </div>
+      <div class="ves-level-progress" id="ves-level-progress"></div>
+      <div class="vocab-entry-btns">
+        <button class="veb veb-new" id="ves-new-btn">
+          <span>继续学新词</span>
+          <small id="ves-new-sub">今天先完成 … 个新词</small>
+        </button>
+        <button class="veb veb-review" id="vocab-start-review" style="display:none">开始复习</button>
+        <button class="veb veb-test" id="ves-test-btn" style="display:none">
+          <span>能力测验</span>
+          <small id="ves-test-sub">测验用法是否真正掌握</small>
+        </button>
+        <button class="veb veb-screen" id="ves-screen-btn" style="display:none">
+          <span>快速筛词</span>
+          <small id="ves-screen-sub">标出已认识的词，跳过重学</small>
+        </button>
+        <button class="veb veb-listen" id="ves-listen-btn">
+          <span>🎧 磨耳朵</span>
+          <small>弱词优先 · 每日自动推荐</small>
+        </button>
+        <button class="veb veb-reset" id="ves-reset-btn">
+          重新设置学习计划 ？
+          <small>学习进度不会丢失</small>
+        </button>
+      </div>
+    </section>
+
+    <section id="screen-learned" class="screen">
+      <div class="vl-header">
+        <button class="vl-back" id="learned-back">返回</button>
+        <div class="vl-title">已学词</div>
+        <div class="vl-count" id="vocab-learned-count">0</div>
+      </div>
+      <div class="vl-listen-entry">
+        <button class="vl-listen-btn" id="learned-start-listening">
+          <span class="vl-listen-main">磨耳朵</span>
+          <span class="vl-listen-sub">弱词优先 · 每日自动推荐</span>
+        </button>
+      </div>
+      <div class="vl-list" id="vocab-learned-list"></div>
+    </section>
+
+    <section id="screen-listening" class="screen">
+      <div class="lp-header">
+        <button class="vl-back" id="listening-quit">返回</button>
+        <div>
+          <div class="lp-title">已学词磨耳朵</div>
+          <div class="lp-sub">弱词优先 · 每日自动推荐</div>
+        </div>
+        <div class="lp-counter" id="listen-counter">0 / 0</div>
+      </div>
+      <div class="lp-body">
+        <div class="lp-word" id="listen-word"></div>
+        <div class="lp-reading" id="listen-reading"></div>
+        <button class="lp-audio" id="listen-replay">▶</button>
+        <div class="lp-meaning" id="listen-meaning"></div>
+        <div class="lp-status" id="listen-status"></div>
+      </div>
+      <div class="lp-actions">
+        <button class="lp-btn lp-unknown" data-listen-feedback="unknown">不认识</button>
+        <button class="lp-btn lp-recall" data-listen-feedback="recall_fail">想不起来</button>
+        <button class="lp-btn lp-passive" data-listen-feedback="passive_known">看了能懂</button>
+        <button class="lp-btn lp-known" data-listen-feedback="known">认识</button>
+      </div>
+    </section>
+
+    <section id="screen-listening-done" class="screen">
+      <div class="ld-title">本轮完成</div>
+      <div class="ld-stats">
+        <div class="ld-row"><span>已听</span><strong id="ld-total">0 词</strong></div>
+        <div class="ld-row"><span>弱词强化</span><strong id="ld-weak">0 词</strong></div>
+        <div class="ld-row"><span>认识</span><strong id="ld-known">0 词</strong></div>
+        <div class="ld-row"><span>仍需强化</span><strong id="ld-need">0 词</strong></div>
+      </div>
+      <button class="ld-btn ld-primary" id="listening-again">再来一轮</button>
+      <button class="ld-btn ld-secondary" id="listening-done-back">结束</button>
+    </section>
+
+    <section id="screen-card" class="screen">
+      <div class="vc-header">
+        <span class="vc-level-badge" id="vc-level-badge"></span>
+        <span class="vc-counter" id="vc-counter"></span>
+        <button class="vc-quit" id="vocab-quit">退出</button>
+      </div>
+      <div class="vc-progress">
+        <div class="vc-progress-fill" id="vc-progress-fill" style="width:0%"></div>
+      </div>
+      <div class="vc-body">
+        <div class="vc-word" id="vc-word"></div>
+        <div class="vc-reading" id="vc-reading"></div>
+        <div class="vc-context" id="vc-context" style="display:none"></div>
+        <button class="vc-audio-btn" id="vc-word-audio">▶</button>
+        <div class="vc-meaning" id="vc-meaning" style="display:none"></div>
+        <button class="vc-cn-audio-btn" id="vc-cn-audio" style="display:none">播放中文</button>
+        <div class="vc-collocation" id="vc-collocation" style="display:none"></div>
+      </div>
+      <div class="vc-actions">
+        <div class="vc-placeholder" id="vc-placeholder">点击查看中文释义</div>
+        <div class="vc-btns-default" id="vc-btns-default">
+          <button class="vc-btn vc-btn-reveal" id="vocab-reveal">看翻译</button>
+          <button class="vc-btn vc-btn-known" data-result="known">秒懂</button>
+        </div>
+        <div class="vc-btns-revealed" id="vc-btns-revealed" style="display:none">
+          <button class="vc-btn vc-btn-again" data-result="again">完全不认识</button>
+          <button class="vc-btn vc-btn-hard" data-result="hard">想不起来</button>
+          <button class="vc-btn vc-btn-good" data-result="good">看了能懂</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-learn-preview" class="screen">
+      <div class="lrv-header">
+        <button class="lrv-back" id="lrv-back">返回</button>
+        <div class="lrv-title">今日学习</div>
+        <button class="lrv-start-btn" id="lrv-start">开始 →</button>
+      </div>
+      <div class="lrv-hint" id="lrv-hint">快速扫一遍，不用记住</div>
+      <div class="lrv-list-header">
+        <span>单词</span>
+        <span>意思</span>
+        <span></span>
+      </div>
+      <div class="lrv-list" id="lrv-list"></div>
+    </section>
+
+    <section id="screen-learn" class="screen">
+      <div class="sl-header">
+        <div class="sl-progress-text" id="sl-progress-text">1 / 10</div>
+        <div class="sl-step-dots" id="sl-step-dots"></div>
+        <button class="sl-quit" id="sl-quit">退出</button>
+      </div>
+      <div class="sl-progress-bar">
+        <div class="sl-progress-fill" id="sl-progress-fill" style="width:0%"></div>
+      </div>
+
+      <div class="sl-panel" id="sl-panel-1">
+        <div class="sl-step-tag">① 听音</div>
+        <div class="sl-word-hero" id="sl-s1-word"></div>
+        <div class="sl-audio-hint" id="sl-s1-hint">正在播放…</div>
+        <button class="sl-replay-btn" id="sl-s1-replay">↻ 再听一次</button>
+        <div class="sl-actions-panel">
+          <button class="sl-btn-primary" id="sl-s1-done">有感觉了 →</button>
+        </div>
+      </div>
+
+      <div class="sl-panel" id="sl-panel-2" style="display:none">
+        <div class="sl-step-tag">② 眼耳同步</div>
+        <div class="sl-word-hero" id="sl-s2-word"></div>
+        <div class="sl-reading-md" id="sl-s2-reading"></div>
+        <div class="sl-meaning-hero" id="sl-s2-meaning"></div>
+        <div class="sl-loop-badge" id="sl-s2-badge">第 1 次</div>
+        <div class="sl-actions-panel sl-actions-row">
+          <button class="sl-btn-secondary" id="sl-s2-more">再来 5 次</button>
+          <button class="sl-btn-primary" id="sl-s2-done">够了 →</button>
+        </div>
+      </div>
+
+      <div class="sl-panel" id="sl-panel-3" style="display:none">
+        <div class="sl-step-tag">③ 联想故事</div>
+        <div class="sl-word-sm" id="sl-s3-word"></div>
+        <div class="sl-story-card" id="sl-s3-story"></div>
+        <div class="sl-actions-panel sl-actions-row">
+          <button class="sl-btn-secondary" id="sl-s3-no">没有浮现</button>
+          <button class="sl-btn-primary" id="sl-s3-yes">画面浮现了 →</button>
+        </div>
+      </div>
+
+      <div class="sl-panel" id="sl-panel-4" style="display:none">
+        <div class="sl-step-tag">④ 跟读</div>
+        <div class="sl-word-sm" id="sl-s4-word"></div>
+        <div class="sl-reading-hero" id="sl-s4-reading"></div>
+        <div class="sl-meaning-sm" id="sl-s4-meaning"></div>
+        <button class="sl-replay-btn" id="sl-s4-replay">▶ 听发音</button>
+        <div class="sl-shadow-tip">跟着读出来，念完再继续</div>
+        <div class="sl-actions-panel">
+          <button class="sl-btn-primary" id="sl-s4-done">念完了 →</button>
+        </div>
+      </div>
+
+      <div class="sl-panel" id="sl-panel-5" style="display:none">
+        <div class="sl-step-tag">⑤ 例句</div>
+        <div class="sl-word-sm" id="sl-s5-word"></div>
+        <div class="sl-example-jp" id="sl-s5-example-jp"></div>
+        <div class="sl-example-cn" id="sl-s5-example-cn"></div>
+        <button class="sl-replay-btn" id="sl-s5-replay">▶ 播放例句</button>
+        <div class="sl-actions-panel">
+          <button class="sl-btn-primary" id="sl-s5-done">继续 →</button>
+        </div>
+      </div>
+
+      <div class="sl-panel" id="sl-panel-6" style="display:none">
+        <div class="sl-step-tag">⑥ 回想</div>
+        <div class="sl-recall-hint">还记得这个词的意思吗？</div>
+        <div class="sl-reading-hero" id="sl-s6-reading"></div>
+        <div class="sl-recall-btns">
+          <button class="sl-recall-btn sl-recall-again" data-recall="again">完全不认识</button>
+          <button class="sl-recall-btn sl-recall-hard" data-recall="hard">想不起来</button>
+          <button class="sl-recall-btn sl-recall-good" data-recall="good">看了能懂</button>
+          <button class="sl-recall-btn sl-recall-known" data-recall="known">完全记住了</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-learn-done" class="screen">
+      <div class="sld-title">本批完成</div>
+      <div class="sld-switches-wrap">
+        <div class="sld-num" id="sld-switches-num">0</div>
+        <div class="sld-label">个开关点亮了</div>
+      </div>
+      <div class="sld-bars" id="sld-bars"></div>
+      <button class="sld-btn" id="sld-more" style="display:none">再学 10 词 →</button>
+      <div class="sld-next-hint" id="sld-next-hint" style="display:none"></div>
+      <button class="sld-btn" id="sld-review-next" style="display:none">去复习</button>
+      <button class="sld-btn sld-btn-secondary" id="sld-done">返回首页</button>
+    </section>
+
+    <section id="screen-screening" class="screen">
+      <div class="sc-header">
+        <div class="sc-counter" id="sc-counter">0 / 0</div>
+        <div class="sc-title">快速筛词</div>
+        <button class="sc-quit" id="sc-quit">退出</button>
+      </div>
+      <div class="sc-progress"><div class="sc-progress-fill" id="sc-progress-fill" style="width:0%"></div></div>
+      <div class="sc-stats">
+        <div class="sc-stat sc-stat-master">已掌握 <strong id="sc-stat-master">0</strong></div>
+        <div class="sc-stat sc-stat-fuzzy">看懂不熟 <strong id="sc-stat-fuzzy">0</strong></div>
+        <div class="sc-stat sc-stat-skip">待学习 <strong id="sc-stat-skip">0</strong></div>
+      </div>
+      <div class="sc-body">
+        <div class="sc-word" id="sc-word"></div>
+        <div class="sc-reading" id="sc-reading"></div>
+        <div class="sc-hint">你对这个词熟悉吗？</div>
+      </div>
+      <div class="sc-actions">
+        <button class="sc-btn sc-btn-unknown" data-sc-result="skip">
+          <span class="sc-btn-main">不认识</span>
+          <span class="sc-btn-sub">从未见过</span>
+        </button>
+        <button class="sc-btn sc-btn-vague" data-sc-result="skip">
+          <span class="sc-btn-main">见过</span>
+          <span class="sc-btn-sub">印象模糊</span>
+        </button>
+        <button class="sc-btn sc-btn-fuzzy" data-sc-result="good">
+          <span class="sc-btn-main">看得懂</span>
+          <span class="sc-btn-sub">但不熟</span>
+        </button>
+        <button class="sc-btn sc-btn-master" data-sc-result="known">
+          <span class="sc-btn-main">已掌握</span>
+          <span class="sc-btn-sub">能马上想起</span>
+        </button>
+      </div>
+
+      <div class="sc-pause-overlay" id="sc-pause" style="display:none">
+        <div class="sc-pause-sheet">
+          <div class="sc-pause-title">已达今日计划词量</div>
+          <div class="sc-pause-msg" id="sc-pause-msg"></div>
+          <button class="sc-pause-learn" id="sc-pause-learn">去学习</button>
+          <button class="sc-pause-keep" id="sc-pause-keep">继续筛词</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-done" class="screen">
+      <div class="vd-title">本轮完成</div>
+      <div class="vd-stats">
+        <div class="vd-stat known">
+          <div class="vd-stat-num" id="vd-known">0</div>
+          <div class="vd-stat-label">认识</div>
+        </div>
+        <div class="vd-stat good">
+          <div class="vd-stat-num" id="vd-good">0</div>
+          <div class="vd-stat-label">看了能懂</div>
+        </div>
+        <div class="vd-stat hard">
+          <div class="vd-stat-num" id="vd-hard">0</div>
+          <div class="vd-stat-label">想不起来</div>
+        </div>
+        <div class="vd-stat again">
+          <div class="vd-stat-num" id="vd-again">0</div>
+          <div class="vd-stat-label">完全不认识</div>
+        </div>
+      </div>
+      <div class="rd-next-hint" id="rd-next-hint" style="display:none"></div>
+      <button class="vd-btn vd-btn-primary" id="rd-learn-next" style="display:none">去学新词 →</button>
+      <button class="vd-btn vd-btn-secondary" id="done-continue">返回首页</button>
+    </section>
+    <section id="screen-test" class="screen">
+      <div class="test-header">
+        <button class="test-back" id="test-back">返回</button>
+        <div class="test-title">能力测验</div>
+        <div class="test-progress-text" id="test-progress-text">0 / 0</div>
+      </div>
+      <div class="test-progress-bar">
+        <div class="test-progress-fill" id="test-progress-fill" style="width:0%"></div>
+      </div>
+
+      <div id="test-main" style="display:none">
+        <div class="test-word-card">
+          <div class="test-word" id="test-word"></div>
+          <div class="test-reading" id="test-reading" style="display:none"></div>
+          <div class="test-meaning" id="test-meaning" style="display:none"></div>
+        </div>
+
+        <div class="test-q-area">
+          <div class="test-streak-row">
+            <div class="test-streak-label">连对进度</div>
+            <div class="test-streak-dots">
+              <div class="test-streak-dot" id="test-dot-1"></div>
+              <div class="test-streak-dot" id="test-dot-2"></div>
+            </div>
+          </div>
+          <div class="test-question" id="test-question"></div>
+          <div class="test-options" id="test-options"></div>
+          <div class="test-feedback" id="test-feedback" style="display:none"></div>
+        </div>
+
+        <button class="test-next-btn" id="test-next-btn" style="display:none">下一题 →</button>
+      </div>
+
+      <div id="test-done" style="display:none">
+        <div class="test-done-title">本轮测验完成</div>
+        <div class="test-done-stats">
+          <div class="test-done-row">
+            <span>测验词数</span><strong id="td-total">0</strong>
+          </div>
+          <div class="test-done-row">
+            <span>通过测验</span><strong id="td-passed">0</strong>
+          </div>
+          <div class="test-done-row">
+            <span>需再练习</span><strong id="td-retry">0</strong>
+          </div>
+        </div>
+        <button class="test-done-btn" onclick="openVocabEntry()">返回首页</button>
+      </div>
+    </section>
+
+    <section id="screen-auth" class="screen">
+      <div class="auth-wrap">
+        <div class="auth-logo">日</div>
+        <div class="auth-app-name">JLPT 背单词</div>
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">登录</button>
+          <button class="auth-tab" id="auth-tab-register" onclick="switchAuthTab('register')">注册</button>
+        </div>
+        <input type="hidden" id="auth-tab-mode" value="login">
+        <div class="auth-form">
+          <input class="auth-input" id="auth-username" type="text" placeholder="用户名" autocomplete="username">
+          <input class="auth-input" id="auth-password" type="password" placeholder="密码" autocomplete="current-password">
+          <div class="auth-error" id="auth-error"></div>
+          <button class="auth-submit" id="auth-submit-btn" onclick="authSubmit()">登录</button>
+        </div>
+        <div class="auth-guest" onclick="guestContinue()">以访客身份继续（数据不会保存到账号）</div>
+      </div>
+    </section>
+  </main>
+
+  <button class="bug-fab" id="bug-fab" onclick="openBugReport()" title="反馈问题">🐛</button>
+
+  <div class="bug-modal-overlay" id="bug-overlay" style="display:none" onclick="closeBugReport()">
+    <div class="bug-modal" onclick="event.stopPropagation()">
+      <div class="bug-modal-title">反馈问题</div>
+      <textarea class="bug-textarea" id="bug-text" placeholder="请描述你遇到的问题，或想提的建议…" rows="5"></textarea>
+      <div class="bug-modal-actions">
+        <button class="bug-cancel" onclick="closeBugReport()">取消</button>
+        <button class="bug-submit" id="bug-submit" onclick="submitBug()">提交</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/static/audio.js?v=20260620-3"></script>
+  <script src="/static/app.js?v=20260620-3"></script>
+</body>
+</html>

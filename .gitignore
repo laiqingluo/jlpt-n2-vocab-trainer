@@ -1,0 +1,42 @@
+# secrets
+backend/.env
+*.pem
+
+# live runtime database (contains real accounts / auth tokens) — ship data/n2_seed.db instead
+data/n2.db
+data/n2.db-shm
+data/n2.db-wal
+data/n2.db.backup-*
+
+# personal learning progress
+progress/*.json
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# generated / cache
+backend/cache/
+cache/
+*.log
+
+# large / third-party raw materials (not needed to run the app)
+data/output/
+data/tatoeba/
+data/_*.json
+data/_*.csv
+data/_*.txt
+data/n2_vocab_backup_*.csv
+data/n2_vocab.before-*.csv
+data/n2_vocab.task3-backup.csv
+data/n2_vocab.backup-*.csv
+data/crawl_seed_sites*.csv
+data/article_urls.txt
+articles.txt
+n2_matched.csv
+n2_web_matched.csv
+
+# editor / tool config
+.claude/

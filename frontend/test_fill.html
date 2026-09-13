@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>填空题测试</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", sans-serif;
+    background: #0f0f13;
+    color: #e8e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  h1 { font-size: 17px; color: #888; font-weight: 400; margin-bottom: 20px; }
+
+  /* Mode toggle */
+  .mode-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1.5px solid #333;
+    border-radius: 10px;
+    background: transparent;
+    color: #aaa;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .mode-btn.active {
+    border-color: #7c6fcd;
+    background: #7c6fcd22;
+    color: #c4baff;
+  }
+
+  /* Word info */
+  .word-card {
+    width: 100%;
+    max-width: 420px;
+    background: #1a1a24;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .wc-word { font-size: 32px; font-weight: 700; letter-spacing: 2px; }
+  .wc-reading { font-size: 15px; color: #aaa; margin-top: 6px; }
+  .wc-pos { font-size: 12px; color: #666; margin-top: 4px; }
+  .wc-meaning {
+    font-size: 13px;
+    color: #999;
+    margin-top: 10px;
+    line-height: 1.6;
+    text-align: left;
+    border-top: 1px solid #2a2a3a;
+    padding-top: 10px;
+  }
+
+  /* Question */
+  .question-box {
+    width: 100%;
+    max-width: 420px;
+    background: #1a1a24;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    font-size: 20px;
+    line-height: 1.7;
+    text-align: center;
+    letter-spacing: 1px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .blank {
+    display: inline-block;
+    background: #7c6fcd33;
+    border-bottom: 2px solid #7c6fcd;
+    color: #c4baff;
+    padding: 0 6px;
+    border-radius: 4px;
+  }
+
+  /* Options */
+  .options {
+    width: 100%;
+    max-width: 420px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .opt-btn {
+    padding: 18px 10px;
+    border: 1.5px solid #2a2a3a;
+    border-radius: 14px;
+    background: #1a1a24;
+    color: #e8e8f0;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .opt-btn:active { transform: scale(0.97); }
+  .opt-btn.correct { border-color: #4caf50; background: #4caf5022; color: #81c784; }
+  .opt-btn.wrong   { border-color: #ef5350; background: #ef535022; color: #e57373; }
+
+  /* Feedback */
+  .feedback {
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    min-height: 36px;
+    margin-bottom: 20px;
+  }
+  .feedback.ok  { color: #81c784; }
+  .feedback.err { color: #e57373; }
+
+  /* Next button */
+  .next-btn {
+    width: 100%;
+    max-width: 420px;
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    background: #7c6fcd;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .next-btn:active { opacity: 0.8; }
+
+  .loading { color: #555; font-size: 15px; margin-top: 60px; }
+</style>
+</head>
+<body>
+<h1>填空题功能验证</h1>
+
+<div class="mode-row">
+  <button class="mode-btn active" id="btn-fill-word" onclick="setMode('fill_word')">挖词题</button>
+  <button class="mode-btn" id="btn-fill-particle" onclick="setMode('fill_particle')">助词题</button>
+</div>
+
+<div class="word-card" id="word-card" style="display:none">
+  <div class="wc-word" id="wc-word"></div>
+  <div class="wc-reading" id="wc-reading"></div>
+  <div class="wc-pos" id="wc-pos"></div>
+  <div class="wc-meaning" id="wc-meaning"></div>
+</div>
+
+<div class="question-box" id="question-box"><span class="loading">加载中…</span></div>
+
+<div class="options" id="options"></div>
+<div class="feedback" id="feedback"></div>
+<button class="next-btn" id="next-btn" onclick="loadQuestion()">下一题 →</button>
+
+<script>
+  let currentMode = 'fill_word';
+  let currentAnswer = '';
+  let currentWord = '';
+  let currentReading = '';
+  let currentMeaning = '';
+  let answered = false;
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('btn-fill-word').classList.toggle('active', mode === 'fill_word');
+    document.getElementById('btn-fill-particle').classList.toggle('active', mode === 'fill_particle');
+    loadQuestion();
+  }
+
+  async function loadQuestion() {
+    answered = false;
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedback').className = 'feedback';
+    document.getElementById('next-btn').style.display = 'none';
+    document.getElementById('word-card').style.display = 'none';
+    document.getElementById('question-box').innerHTML = '<span class="loading">加载中…</span>';
+    document.getElementById('options').innerHTML = '';
+
+    try {
+      const res = await fetch(`/api/debug/fill-question?q_type=${currentMode}`);
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+
+      currentAnswer  = data.answer;
+      currentWord    = data.word;
+      currentReading = data.reading || '';
+      currentMeaning = shortMeaning(data.meaning || '');
+
+      // fill_word: word is the answer — hide word/reading, show meaning as hint
+      const isFillWord = currentMode === 'fill_word';
+      document.getElementById('wc-word').textContent    = isFillWord ? '？？？' : data.word;
+      document.getElementById('wc-reading').textContent = isFillWord ? '' : (data.reading || '');
+      document.getElementById('wc-pos').textContent     = data.pos || '';
+      document.getElementById('wc-meaning').textContent = isFillWord ? '' : shortMeaning(data.meaning || '');
+      document.getElementById('word-card').style.display = '';
+
+      // Question
+      const qHtml = escHtml(data.question).replace('＿＿', '<span class="blank">＿＿</span>');
+      document.getElementById('question-box').innerHTML = qHtml;
+
+      // Options: shuffle answer + distractors
+      const opts = shuffle([data.answer, ...(data.distractors || [])]);
+      document.getElementById('options').innerHTML = opts.map(o =>
+        `<button class="opt-btn" onclick="selectOpt(this,'${escAttr(o)}')">${escHtml(o)}</button>`
+      ).join('');
+
+    } catch (e) {
+      document.getElementById('question-box').innerHTML =
+        `<span style="color:#e57373;font-size:14px">加载失败：${e.message}</span>`;
+    }
+  }
+
+  function selectOpt(btn, opt) {
+    if (answered) return;
+    answered = true;
+
+    document.querySelectorAll('.opt-btn').forEach(b => {
+      b.disabled = true;
+      if (b.dataset.opt === currentAnswer || b.getAttribute('onclick').includes(`'${currentAnswer}'`)) {
+        b.classList.add('correct');
+      }
+    });
+
+    const correct = opt === currentAnswer;
+    btn.classList.add(correct ? 'correct' : 'wrong');
+
+    // Reveal word for fill_word after answering
+    if (currentMode === 'fill_word') {
+      document.getElementById('wc-word').textContent    = currentWord;
+      document.getElementById('wc-reading').textContent = currentReading;
+      document.getElementById('wc-meaning').textContent = currentMeaning;
+    }
+
+    const fb = document.getElementById('feedback');
+    fb.textContent = correct ? '正确 ✓' : `错误 ✗   答案：${currentAnswer}`;
+    fb.className = 'feedback ' + (correct ? 'ok' : 'err');
+
+    document.getElementById('next-btn').style.display = '';
+  }
+
+  function shortMeaning(text) {
+    if (!text) return '';
+    const m = text.match(/[①②③④⑤]([^①②③④⑤（]{1,30})/);
+    return m ? m[1].split('（')[0].trim() : text.slice(0, 30);
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function escAttr(s) {
+    return s.replace(/'/g,"\\'");
+  }
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  loadQuestion();
+</script>
+</body>
+</html>
