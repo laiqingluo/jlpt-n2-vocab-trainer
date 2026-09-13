@@ -2,6 +2,12 @@
 
 基于 2010–2025 JLPT N2 真题词频数据构建的背单词 Web 应用。核心是"五步沉浸式"单词学习流程（听音 → 眼耳同步 → AI 联想故事记忆 → 跟读 → 例句），配合间隔重复复习（SRS）、磨耳朵听力和能力测验。
 
+<p align="center">
+  <img src="docs/screenshots/login.jpg" width="30%" alt="登录/访客入口" />
+  <img src="docs/screenshots/dashboard.jpg" width="30%" alt="学习计划首页" />
+  <img src="docs/screenshots/memory-story.jpg" width="30%" alt="AI 联想记忆故事" />
+</p>
+
 ## 功能
 
 - **五步单词学习流程**：TTS 听音、词形+读音+释义同步呈现、AI 生成的中文联想记忆故事、跟读练习、真实例句
@@ -68,3 +74,7 @@ reports/        数据清洗过程报告
 词表基于 2010–2025 年 JLPT N2 真题词频统计，经过多轮清洗、四象限分类（黄金词/隐藏考点/社区推荐/边缘词）、字段补全（GPT 批量生成释义、搭配、例句、联想记忆故事）。详细过程见 `reports/n2_vocab_cleaning_report.md` 和 `PROJECT_HANDOFF.md`。
 
 `data/n2_seed.db` 是不含任何真实用户账号/登录态的干净种子数据库，可放心用于本地开发；`tools/migrate_to_sqlite.py` 可从 `data/n2_vocab.csv` 重新同步词表到数据库。
+
+## License
+
+[MIT](LICENSE)
