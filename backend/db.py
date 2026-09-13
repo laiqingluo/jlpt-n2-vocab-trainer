@@ -102,7 +102,8 @@ def _create_tables(conn: sqlite3.Connection) -> None:
         CREATE TABLE IF NOT EXISTS auth_tokens (
             token      TEXT PRIMARY KEY,
             user_id    TEXT NOT NULL REFERENCES users(id),
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            expires_at TEXT
         );
 
         CREATE TABLE IF NOT EXISTS word_test_questions (
@@ -165,6 +166,14 @@ def _migrate(conn: sqlite3.Connection) -> None:
     for col, typedef in new_cols:
         if col not in existing:
             conn.execute(f"ALTER TABLE user_word_status ADD COLUMN {col} {typedef}")
+
+    # auth_tokens table migrations
+    tokens_existing = {row[1] for row in conn.execute("PRAGMA table_info(auth_tokens)").fetchall()}
+    if "expires_at" not in tokens_existing:
+        conn.execute("ALTER TABLE auth_tokens ADD COLUMN expires_at TEXT")
+        # Pre-existing tokens predate expiry tracking; drop them so every
+        # session goes through the new expiring-token path on next request.
+        conn.execute("DELETE FROM auth_tokens WHERE expires_at IS NULL")
     conn.commit()
 
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import secrets
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -11,6 +11,8 @@ from db import get_conn
 
 router = APIRouter()
 
+TOKEN_TTL = timedelta(days=30)
+
 
 def _hash(password: str, salt: str) -> str:
     return hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000).hex()
@@ -18,6 +20,17 @@ def _hash(password: str, salt: str) -> str:
 
 def _make_token() -> str:
     return secrets.token_urlsafe(32)
+
+
+def _issue_token(conn, user_id: str) -> str:
+    token = _make_token()
+    now = datetime.now(timezone.utc)
+    conn.execute(
+        "INSERT INTO auth_tokens (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+        (token, user_id, now.isoformat(), (now + TOKEN_TTL).isoformat()),
+    )
+    conn.commit()
+    return token
 
 
 def resolve_user_id(request: Request) -> str:
@@ -51,12 +64,7 @@ async def register(req: AuthRequest):
     except Exception:
         raise HTTPException(400, "用户名已存在")
 
-    token = _make_token()
-    conn.execute(
-        "INSERT INTO auth_tokens (token, user_id, created_at) VALUES (?, ?, ?)",
-        (token, user_id, now),
-    )
-    conn.commit()
+    token = _issue_token(conn, user_id)
     return {"token": token, "user_id": user_id, "username": req.username.strip()}
 
 
@@ -74,14 +82,17 @@ async def login(req: AuthRequest):
     if _hash(req.password, salt) != key_hex:
         raise HTTPException(401, "用户名或密码错误")
 
-    token = _make_token()
-    now = datetime.now(timezone.utc).isoformat()
-    conn.execute(
-        "INSERT INTO auth_tokens (token, user_id, created_at) VALUES (?, ?, ?)",
-        (token, row["id"], now),
-    )
-    conn.commit()
+    token = _issue_token(conn, row["id"])
     return {"token": token, "user_id": row["id"], "username": req.username.strip()}
+
+
+@router.post("/api/auth/logout")
+async def logout(request: Request):
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        get_conn().execute("DELETE FROM auth_tokens WHERE token=?", (auth[7:],))
+        get_conn().commit()
+    return {"ok": True}
 
 
 @router.get("/api/auth/me")

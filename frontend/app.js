@@ -250,7 +250,10 @@ function guestContinue() {
   _afterAuth();
 }
 
-function logout() {
+async function logout() {
+  try {
+    await apiFetch("/api/auth/logout", { method: "POST" });
+  } catch {}
   localStorage.removeItem("auth_token");
   localStorage.removeItem("auth_username");
   setScreen("screen-auth");

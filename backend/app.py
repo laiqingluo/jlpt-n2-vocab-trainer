@@ -38,16 +38,25 @@ app = FastAPI(title="JLPT N2 Trainer", version="0.3.0")
 
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
-    """Resolve user_id from Bearer token; fall back to 'default'."""
+    """Resolve user_id from a non-expired Bearer token; fall back to 'default'."""
     user_id = DEFAULT_USER_ID
     auth = request.headers.get("Authorization", "")
     if auth.startswith("Bearer "):
         token = auth[7:]
-        row = get_conn().execute(
-            "SELECT user_id FROM auth_tokens WHERE token=?", (token,)
+        conn = get_conn()
+        row = conn.execute(
+            "SELECT user_id, expires_at FROM auth_tokens WHERE token=?", (token,)
         ).fetchone()
         if row:
-            user_id = row["user_id"]
+            expired = (
+                not row["expires_at"]
+                or datetime.fromisoformat(row["expires_at"]) <= datetime.now(timezone.utc)
+            )
+            if expired:
+                conn.execute("DELETE FROM auth_tokens WHERE token=?", (token,))
+                conn.commit()
+            else:
+                user_id = row["user_id"]
     request.state.user_id = user_id
     return await call_next(request)
 
