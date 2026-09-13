@@ -25,19 +25,33 @@
 cd backend
 pip install -r requirements.txt
 
-# 2. 配置密钥（TTS 需要 Azure；批量生成联想故事/释义需要 OpenAI）
-Copy-Item .env.example .env
-# 编辑 .env 填入你自己的 AZURE_SPEECH_KEY / OPENAI_API_KEY
-
-# 3. 用种子数据初始化数据库（首次运行）
+# 2. 用种子数据初始化数据库（首次运行，必须）
 cd ..
 Copy-Item data/n2_seed.db data/n2.db
 
-# 4. 启动
+# 3. 启动
 ./start_server.ps1
 ```
 
-访问 `http://localhost:8000`，可以直接选择"以访客身份继续"体验，无需配置密钥即可看到词卡界面（TTS 发音功能需要 Azure 密钥）。
+非 Windows / 不用脚本启动：
+
+```bash
+cd backend
+uvicorn app:app --reload --port 8000
+```
+
+访问 `http://localhost:8000`，选择"以访客身份继续"即可看到完整词卡界面、复习计划、联想故事——**不需要任何密钥**（词表和联想故事已经内置在 `data/n2_seed.db` 里）。
+
+如果想要真人发音（TTS）：
+
+```powershell
+Copy-Item backend/.env.example backend/.env
+# 编辑 backend/.env，填入你自己的 AZURE_SPEECH_KEY / AZURE_SPEECH_REGION
+```
+
+没配置 Azure 密钥时，点发音按钮会收到明确的 502 错误提示，不影响其他功能。
+
+`OPENAI_API_KEY` 只有 `tools/` 目录下重新生成释义 / 联想故事的脚本会用到，运行 App 本身不需要。另外 `tools/` 里的部分脚本（如 `enrich_fields.py`、`audit_source.py` 等）里硬编码了作者本地其它项目的绝对路径，是当初数据清洗过程的历史记录，仅供参考，无法直接重新运行。
 
 ## 目录结构
 
